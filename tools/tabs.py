@@ -5,7 +5,7 @@ def tables(header):
 	"""Find the start of the c array, declared with [].
 	Expects one parameter, a string containing the content of the file to read."""
 	ct = header.count('[]') #How many tables.
-	if ct == 0: return #Woops, nothing to do. 
+	if ct == 0: return #Woops, nothing to do.
 	idx = 0 #start from the first letter.
 	while ct > 0:
 		idx = header.index('[]', idx)
@@ -48,4 +48,49 @@ def allTabs(filePath):
 	for i in tables(header):
 		r[getTabName(header, i)] = (getComments(header, i), getTabData(header, i))
 	return r
+
+def splitTab(x):
+ x = '\n' + x + '\n'
+ nend = x.index('[')
+ nstart = x.rindex(' ', 0, nend)
+ name = x[nstart:nend].strip()
+ dend = x.index('\n', nend)
+ dstart = x.rindex('\n', 0, nend - 1)
+ dcl = x[dstart:dend].strip()
+ vstart = x.index('{') + 1
+ vend = x.rindex('}')
+ vals = [i.strip() for i in x[vstart:vend].split(',')]
+ hdr = x[:dstart].strip()
+ hdr += '\n# ' + dcl
+ return (name, hdr, vals)
+
+def isHex(x):
+ if x.isdigit():
+  return True
+ try:
+  x = [int(x, 16)]
+  return True
+ except ValueError:
+  return False
+ except TypeError:
+  return False
+
+zxfmt = "/*!!{}*/"
+def getch(x):
+ if isHex(x):
+  return x
+ if x.count("'") >= 2:
+  xs = x.index("'") + 1
+  xe = x.rindex("'")
+  if xe - xs >= 1 and x[xs] == "\\":
+   xs += 1
+  r = hex(ord(x[xs:xe]))
+  if len(x) == 3:
+   return r
+  rx = x[3:]
+  hx = rx[1:]
+  if isHex(hx):
+   return "{} {} {}".format(*[r, rx[0], hx])
+ x = xfmt.format(x)
+ return x
 
